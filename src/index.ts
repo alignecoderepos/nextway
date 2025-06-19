@@ -4,7 +4,7 @@
  */
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
+import { gatewayLogger } from "./middleware/log/index.js";
 import { loadConfig, getConfig } from "./config.js";
 import { chatCompletionsHandler } from "./handlers/chat-completions.js";
 
@@ -25,7 +25,7 @@ const corsOptions = {
 };
 
 app.use("*", cors(corsOptions));
-app.use("*", logger());
+app.use("*", gatewayLogger({ level: config.logging.level }));
 
 // Mount chat completions router
 app.route("/v1/chat/completions", chatCompletionsHandler());

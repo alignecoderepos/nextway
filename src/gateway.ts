@@ -11,6 +11,7 @@ import { loadConfig, getConfig, getProviderForModel } from './config.js';
 import { OpenAIProvider } from './providers/openai.js';
 import { AnthropicProvider } from './providers/anthropic.js';
 import type { OpenAIRequest } from './providers/openai.js';
+import { memoryCache } from './middleware/cache/index.js';
 
 // Rate limiting store (in-memory for simplicity)
 interface RateLimitEntry {
@@ -97,8 +98,8 @@ function createErrorResponse(c: any, message: string, type = 'gateway_error', co
 // Rate limiting middleware
 app.use('/v1/chat/completions', async (c, next) => {
   const authHeader = c.req.header('authorization');
-  const key = authHeader?.startsWith('Bearer ') 
-    ? authHeader.slice(7) 
+  const key = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice(7)
     : c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
 
   if (!rateLimiter.isAllowed(key)) {
@@ -113,6 +114,9 @@ app.use('/v1/chat/completions', async (c, next) => {
 
   await next();
 });
+
+// Cache middleware to store non-streaming responses in memory
+app.use('/v1/chat/completions', memoryCache());
 
 // Main chat completions endpoint
 app.post('/v1/chat/completions', async (c) => {

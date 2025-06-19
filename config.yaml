@@ -1,0 +1,28 @@
+# AI Gateway Configuration
+default_provider: openai
+timeout_ms: 30000
+
+providers:
+  openai:
+    api_key_env: OPENAI_API_KEY
+    endpoint: https://api.openai.com/v1/chat/completions
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    endpoint: https://api.anthropic.com/v1/messages
+
+model_mappings:
+  gpt-4: openai
+  gpt-4-turbo: openai
+  gpt-4o: openai
+  gpt-4o-mini: openai
+  gpt-3.5-turbo: openai
+  claude-3-sonnet: anthropic
+  claude-3-opus: anthropic
+  claude-3-haiku: anthropic
+  claude-3-5-sonnet: anthropic
+
+rate_limits:
+  per_minute: 60
+
+logging:
+  level: info

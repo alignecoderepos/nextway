@@ -1,0 +1,34 @@
+{
+    "name": "nextway",
+    "version": "1.0.0",
+    "description": "Unified AI Gateway for OpenAI and Anthropic APIs",
+    "type": "module",
+    "main": "dist/gateway.js",
+    "scripts": {
+        "dev": "tsx watch src/gateway.ts",
+        "build": "tsc",
+        "start": "node dist/gateway.js",
+        "test": "vitest",
+        "lint": "eslint src --ext .ts",
+        "format": "prettier --write src"
+    },
+    "dependencies": {
+        "@hono/node-server": "^1.14.4",
+        "hono": "^4.0.0",
+        "yaml": "^2.3.4",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "@typescript-eslint/parser": "^6.19.0",
+        "eslint": "^8.56.0",
+        "prettier": "^3.2.4",
+        "tsx": "^4.7.0",
+        "typescript": "^5.3.3",
+        "vitest": "^1.2.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

@@ -138,7 +138,7 @@ npm test
 
 ## Architecture
 
-- **`gateway.ts`**: Main Hono app with routing and middleware
+- **`index.ts`**: Main Hono app with routing and middleware
 - **`config.ts`**: YAML configuration loader with Zod validation
 - **`providers/openai.ts`**: OpenAI API client (pass-through)
 - **`providers/anthropic.ts`**: Anthropic API client with format conversion

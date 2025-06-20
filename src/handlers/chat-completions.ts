@@ -5,6 +5,7 @@
 import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { memoryCache } from "../middleware/cache/index.js";
+import { guardrails } from "../middleware/guardrails/index.js";
 import { getConfig, getProviderForModel } from "../config.js";
 import { OpenAIProvider } from "../providers/openai.js";
 import { AnthropicProvider } from "../providers/anthropic.js";
@@ -102,6 +103,7 @@ export function chatCompletionsHandler(): Hono {
   });
 
   router.use(memoryCache());
+  router.use(guardrails());
 
   router.post("/", async (c) => {
     try {

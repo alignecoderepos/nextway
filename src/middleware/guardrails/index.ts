@@ -58,15 +58,23 @@ export function guardrails(): MiddlewareHandler {
       const resText = await resClone.text();
       const resDetection = await detectPii(client, resText);
       if (resDetection.entities.length) {
-        console.warn(`Guardrails response entities: ${resDetection.entities.join(', ')}`);
+        console.warn(
+          `Guardrails response entities: ${resDetection.entities.join(', ')}`,
+        );
         if (mode === 'block') {
-          return c.json(
-            { error: { message: 'PII detected in response', type: 'guardrails_violation', code: 'PII_DETECTED' } },
-            502,
+          c.res = new Response(
+            JSON.stringify({
+              error: {
+                message: 'PII detected in response',
+                type: 'guardrails_violation',
+                code: 'PII_DETECTED',
+              },
+            }),
+            { status: 502, headers: { 'Content-Type': 'application/json' } },
           );
+          return;
         }
       }
-      c.res = resClone;
     }
   };
 }

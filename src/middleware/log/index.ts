@@ -1,8 +1,9 @@
-import { MiddlewareHandler } from 'hono';
-import { randomUUID } from 'crypto';
+import { MiddlewareHandler } from "hono";
+import { randomUUID } from "crypto";
+import type { GuardrailDetectionLog } from "../guardrails/index.js";
 
 export interface LoggerOptions {
-  level?: 'debug' | 'info' | 'warn' | 'error';
+  level?: "debug" | "info" | "warn" | "error";
   /** Custom logging function */
   log?: (entry: LogEntry) => void;
 }
@@ -19,6 +20,7 @@ export interface LogEntry {
   responseSize?: number;
   latencyMs?: number;
   error?: unknown;
+  guardrails?: GuardrailDetectionLog[];
 }
 
 /**
@@ -26,13 +28,17 @@ export interface LogEntry {
  * Logs request metadata, body size, latency, and errors.
  */
 export function gatewayLogger(options: LoggerOptions = {}): MiddlewareHandler {
-  const logFn = options.log || ((entry: LogEntry) => {
-    const { requestId, method, path, status, latencyMs } = entry;
-    console.log(`[${requestId}] ${method} ${path} -> ${status} (${latencyMs}ms)`);
-    if (options.level === 'debug') {
-      console.debug(JSON.stringify(entry, null, 2));
-    }
-  });
+  const logFn =
+    options.log ||
+    ((entry: LogEntry) => {
+      const { requestId, method, path, status, latencyMs } = entry;
+      console.log(
+        `[${requestId}] ${method} ${path} -> ${status} (${latencyMs}ms)`,
+      );
+      if (options.level === "debug") {
+        console.debug(JSON.stringify(entry, null, 2));
+      }
+    });
 
   return async (c, next) => {
     const start = Date.now();
@@ -59,7 +65,7 @@ export function gatewayLogger(options: LoggerOptions = {}): MiddlewareHandler {
       payloadSize: bodyText.length,
     };
 
-    c.res.headers.set('x-request-id', requestId);
+    c.res.headers.set("x-request-id", requestId);
     try {
       await next();
     } catch (err) {
@@ -75,6 +81,12 @@ export function gatewayLogger(options: LoggerOptions = {}): MiddlewareHandler {
     entry.status = resClone.status;
     entry.responseSize = resText.length;
     entry.latencyMs = Date.now() - start;
+    const detections = c.get("guardrail_detections") as
+      | GuardrailDetectionLog[]
+      | undefined;
+    if (detections && detections.length > 0) {
+      entry.guardrails = detections;
+    }
     if (resClone.status >= 400) {
       entry.error = resText;
     }

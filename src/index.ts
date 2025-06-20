@@ -5,6 +5,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { gatewayLogger } from "./middleware/log/index.js";
+import { createRotatingFileLogger } from "./utils/rotating-file-logger.js";
 import { loadConfig, getConfig } from "./config.js";
 import { chatCompletionsHandler } from "./handlers/chat-completions.js";
 
@@ -25,7 +26,23 @@ const corsOptions = {
 };
 
 app.use("*", cors(corsOptions));
-app.use("*", gatewayLogger({ level: config.logging.level }));
+const fileLogger = createRotatingFileLogger();
+app.use(
+  "*",
+  gatewayLogger({
+    level: config.logging.level,
+    log: (entry) => {
+      const { requestId, method, path, status, latencyMs } = entry;
+      console.log(
+        `[${requestId}] ${method} ${path} -> ${status} (${latencyMs}ms)`,
+      );
+      if (config.logging.level === "debug") {
+        console.debug(JSON.stringify(entry, null, 2));
+      }
+      fileLogger(JSON.stringify(entry));
+    },
+  }),
+);
 
 // Mount chat completions router
 app.route("/v1/chat/completions", chatCompletionsHandler());

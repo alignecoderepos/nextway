@@ -26,3 +26,10 @@ rate_limits:
 
 logging:
   level: info
+
+guardrails:
+  enabled: false
+  mode: log
+  aws_region: us-east-1
+  access_key_id_env: AWS_ACCESS_KEY_ID
+  secret_access_key_env: AWS_SECRET_ACCESS_KEY

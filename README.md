@@ -10,6 +10,7 @@ A unified gateway that provides a single OpenAI-compatible endpoint for both Ope
 - **Rate Limiting**: Token-bucket rate limiting per IP/API key
 - **Error Handling**: Consistent OpenAI-style error responses
 - **Configuration**: YAML-based configuration with environment variable secrets
+- **Guardrails**: Optional PII detection using Amazon Comprehend
 
 ## Setup
 
@@ -90,7 +91,8 @@ The `config.yaml` file controls:
 - **API Endpoints**: Configure provider endpoints
 - **Rate Limiting**: Set requests per minute limits
 - **Timeouts**: Configure request timeouts
-- **Logging**: Set log levels
+ - **Logging**: Set log levels
+ - **Guardrails**: Optional PII detection settings
 
 Example configuration:
 ```yaml
@@ -114,6 +116,13 @@ rate_limits:
 
 logging:
   level: info
+
+guardrails:
+  enabled: false
+  mode: log
+  aws_region: us-east-1
+  access_key_id_env: AWS_ACCESS_KEY_ID
+  secret_access_key_env: AWS_SECRET_ACCESS_KEY
 ```
 
 ## Error Handling

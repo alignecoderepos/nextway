@@ -6,13 +6,14 @@
  * configurable TTL (default: 1 minute).
  */
 
-import type { MiddlewareHandler } from 'hono';
+import type { MiddlewareHandler } from "hono";
 
 interface CacheEntry {
   expires: number;
   body: string;
   status: number;
   headers: [string, string][];
+  latencyMs: number;
 }
 
 const store = new Map<string, CacheEntry>();
@@ -29,6 +30,7 @@ export function memoryCache(options: CacheOptions = {}): MiddlewareHandler {
   const ttl = options.ttl ?? 60_000; // default 60 seconds
 
   return async (c, next) => {
+    const start = Date.now();
     // Clone the incoming request so that downstream handlers can still
     // consume the body.
     const clone = (c.req as any).raw?.clone
@@ -43,14 +45,20 @@ export function memoryCache(options: CacheOptions = {}): MiddlewareHandler {
         status: cached.status,
         headers: cached.headers,
       });
+      const latency = Date.now() - start;
+      c.set("cache_status", "hit");
+      c.set("cache_time_saved_ms", Math.max(0, cached.latencyMs - latency));
       return;
     }
 
     await next();
+    const latency = Date.now() - start;
+    c.set("cache_status", "miss");
+    c.set("cache_time_saved_ms", 0);
 
     // Only cache successful, non-streaming JSON responses
-    const contentType = c.res.headers.get('content-type') || '';
-    if (c.res.ok && !contentType.includes('text/event-stream')) {
+    const contentType = c.res.headers.get("content-type") || "";
+    if (c.res.ok && !contentType.includes("text/event-stream")) {
       const resClone = c.res.clone();
       const resBody = await resClone.text();
       store.set(key, {
@@ -58,6 +66,7 @@ export function memoryCache(options: CacheOptions = {}): MiddlewareHandler {
         body: resBody,
         status: resClone.status,
         headers: Array.from(resClone.headers.entries()),
+        latencyMs: latency,
       });
     }
   };

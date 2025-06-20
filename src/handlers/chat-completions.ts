@@ -130,6 +130,8 @@ export function chatCompletionsHandler(): Hono {
       }
 
       const provider = getProviderForModel(request.model);
+      c.set("request_model", request.model);
+      c.set("target_provider", provider);
 
       if (config.logging.level === "debug") {
         console.log(`Routing model ${request.model} to provider: ${provider}`);

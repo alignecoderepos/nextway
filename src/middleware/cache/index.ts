@@ -14,6 +14,8 @@ interface CacheEntry {
   status: number;
   headers: [string, string][];
   latencyMs: number;
+  model?: string;
+  provider?: string;
 }
 
 const store = new Map<string, CacheEntry>();
@@ -48,6 +50,8 @@ export function memoryCache(options: CacheOptions = {}): MiddlewareHandler {
       const latency = Date.now() - start;
       c.set("cache_status", "hit");
       c.set("cache_time_saved_ms", Math.max(0, cached.latencyMs - latency));
+      if (cached.model) c.set("request_model", cached.model);
+      if (cached.provider) c.set("target_provider", cached.provider);
       return;
     }
 
@@ -67,6 +71,8 @@ export function memoryCache(options: CacheOptions = {}): MiddlewareHandler {
         status: resClone.status,
         headers: Array.from(resClone.headers.entries()),
         latencyMs: latency,
+        model: c.get("request_model"),
+        provider: c.get("target_provider"),
       });
     }
   };

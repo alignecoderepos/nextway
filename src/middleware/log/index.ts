@@ -21,6 +21,14 @@ export interface LogEntry {
   latencyMs?: number;
   error?: unknown;
   guardrails?: GuardrailDetectionLog[];
+  /** Model requested by the client */
+  model?: string;
+  /** Provider the request was routed to */
+  provider?: string;
+  /** Indicates whether the response came from cache or provider */
+  servedFrom?: "cache" | "provider";
+  /** Time saved when served from cache */
+  cacheTimeSavedMs?: number;
 }
 
 /**
@@ -81,6 +89,14 @@ export function gatewayLogger(options: LoggerOptions = {}): MiddlewareHandler {
     entry.status = resClone.status;
     entry.responseSize = resText.length;
     entry.latencyMs = Date.now() - start;
+    entry.model = c.get("request_model");
+    entry.provider = c.get("target_provider");
+    const cacheStatus = c.get("cache_status") as "hit" | "miss" | undefined;
+    entry.servedFrom = cacheStatus === "hit" ? "cache" : "provider";
+    const saved = c.get("cache_time_saved_ms");
+    if (typeof saved === "number") {
+      entry.cacheTimeSavedMs = saved;
+    }
     const detections = c.get("guardrail_detections") as
       | GuardrailDetectionLog[]
       | undefined;
